@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -22,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -44,8 +42,8 @@ import com.clarxlabs.lillia.ui.theme.LilliaTheme
 
 @Composable
 fun SignInView(viewModel: SignInViewModel, navigateTo: (AppRoute) -> Unit) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val sendEvent = viewModel::sendEvent
+    val state by viewModel.flow.collectAsStateWithLifecycle()
+    val sendEvent = viewModel::handleEvent
 
     SignInViewContent(state, sendEvent, navigateTo)
 }

@@ -27,8 +27,8 @@ import com.clarxlabs.lillia.ui.theme.LilliaTheme
 
 @Composable
 fun ListView(viewModel: ListViewModel, onNavigate: (AppRoute) -> Unit) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val onEvent = viewModel::sendEvent
+    val state by viewModel.flow.collectAsStateWithLifecycle()
+    val onEvent = viewModel::handleEvent
 
     ListViewContent(state, onEvent, onNavigate)
 }

@@ -39,8 +39,8 @@ import com.clarxlabs.lillia.ui.theme.LilliaTheme
 
 @Composable
 fun VerifyAccountView(viewModel: VerifyAccountViewModel, navigateTo: (AppRoute) -> Unit) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val sendEvent = viewModel::sendEvent
+    val state by viewModel.flow.collectAsStateWithLifecycle()
+    val sendEvent = viewModel::handleEvent
 
     VerifyAccountViewContent(state, sendEvent, navigateTo)
 }

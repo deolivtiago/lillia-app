@@ -17,7 +17,7 @@ class ListViewModel(
         fetchUsers(::mapResult)
     }
 
-    override fun sendEvent(event: ListModel.Event) {
+    override fun handleEvent(event: ListModel.Event) {
         when (event) {
             ListModel.Event.OnCardClicked -> {}
         }
@@ -29,9 +29,9 @@ class ListViewModel(
 
     fun mapResult(result: Either<ListUsersError, ListUsersOutput>) =
         result.fold(
-            { setState { it.copy(isLoading = false) } },
+            { setUiState { it.copy(isLoading = false) } },
             { output ->
-                setState {
+                setUiState {
                     it.copy(
                         isLoading = false,
                         users = output.map {

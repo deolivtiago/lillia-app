@@ -6,8 +6,6 @@ import com.clarxlabs.lillia.core.entities.User
 import com.clarxlabs.lillia.ui.AppModel
 import com.clarxlabs.lillia.ui.AppRoute
 import io.konform.validation.Validation
-import io.konform.validation.constraints.maxLength
-import io.konform.validation.constraints.minLength
 import kotlinx.serialization.Serializable
 
 sealed interface HomeModel : AppModel {
@@ -17,7 +15,8 @@ sealed interface HomeModel : AppModel {
         val refreshToken: String = "jwt.refresh.token",
 
         val user: User = User(),
-
+        val email: String = "email",
+        val emailError: String = "",
 
         val isLoading: Boolean = false,
     ) : AppModel.State {
@@ -26,20 +25,28 @@ sealed interface HomeModel : AppModel {
             refreshToken = handle.toRoute<AppRoute.Home>().refreshToken,
         )
 
-        var emailError: String = ""
-        private var _email: String = "deoliv.tiago@gmail.com"
+//        var emailError: String = ""
+//        private var _email: String = "deoliv.tiago@gmail.com"
 
-        var email: String
-            get() = _email
-            set(value) {
-                _email = value
-                val validate = Validation {
-                    minLength(3)
-                    maxLength(6)
-                }
+//        var email: String
+//            get() = _email
+//            set(value) {
+//                _email = value
+//                val validate = Validation {
+//                    minLength(3)
+//                    maxLength(6)
+//                }
 
-                emailError = if (validate(value).isValid) "" else "erro"
-            }
+//                emailError = if (validate(value).isValid) "" else "erro"
+//            }
+
+        fun validateEmail(text: String): State {
+
+
+            return copy(email = email, emailError = "")
+        }
+
+        val userFirstName = user.fullName.split(" ").first()
 
     }
 

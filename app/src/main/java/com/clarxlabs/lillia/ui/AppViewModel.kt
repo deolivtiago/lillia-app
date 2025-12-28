@@ -9,8 +9,11 @@ abstract class AppViewModel<TState : AppModel.State, TEvent : AppModel.Event>(
     initialState: TState,
 ) : ViewModel() {
     private val _state = MutableStateFlow(initialState)
-    protected val setState = _state::update
-    val state = _state.asStateFlow()
 
-    abstract fun sendEvent(event: TEvent)
+    val flow = _state.asStateFlow()
+
+    protected val setUiState: ((TState) -> TState) -> Unit = _state::update
+    protected val uiState = _state.value
+
+    abstract fun handleEvent(event: TEvent)
 }

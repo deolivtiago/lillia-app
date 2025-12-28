@@ -16,7 +16,7 @@ class VerifyAccountViewModel(
     handle: SavedStateHandle,
 ) : AppViewModel<VerifyAccountModel.State, VerifyAccountModel.Event>(VerifyAccountModel.State(handle)) {
 
-    override fun sendEvent(event: VerifyAccountModel.Event) {
+    override fun handleEvent(event: VerifyAccountModel.Event) {
         when (event) {
             is VerifyAccountModel.Event.OnSubmitClicked -> onSubmitClicked(event.navigateTo)
             is VerifyAccountModel.Event.OnContactClicked -> onContactClicked(event.navigateTo)
@@ -25,31 +25,31 @@ class VerifyAccountViewModel(
     }
 
     private fun onSubmitClicked(navigateTo: (AppRoute) -> Unit) {
-        setState { it.copy(isLoading = true) }
+        setUiState { it.copy(isLoading = true) }
 
-        sendVerificationEmail { navigateTo(AppRoute.ConfirmAccount(email = state.value.email)) }
+        sendVerificationEmail { navigateTo(AppRoute.ConfirmAccount(email = flow.value.email)) }
 
-        setState { it.copy(isLoading = false) }
+        setUiState { it.copy(isLoading = false) }
     }
 
     private fun onConfirmedClicked(navigateTo: (AppRoute) -> Unit) {
-        when (state.value.verificationType) {
+        when (flow.value.verificationType) {
             VerificationType.CONFIRM_ACCOUNT ->
-                navigateTo(AppRoute.ConfirmAccount(email = state.value.email))
+                navigateTo(AppRoute.ConfirmAccount(email = flow.value.email))
 
             VerificationType.RESET_PASSWORD ->
-                navigateTo(AppRoute.ResetPassword(email = state.value.email))
+                navigateTo(AppRoute.ResetPassword(email = flow.value.email))
 
             VerificationType.CHANGE_EMAIL -> TODO()
         }
     }
 
     private fun onContactClicked(navigateTo: (AppRoute) -> Unit) {
-        setState { it.copy(isLoading = false) }
+        setUiState { it.copy(isLoading = false) }
     }
 
     private fun sendVerificationEmail(onResponse: (Either<SendCodeError, SendCodeOutput>) -> Unit = {}) {
-        val input = SendCodeInput(email = state.value.email)
+        val input = SendCodeInput(email = flow.value.email)
 
         viewModelScope.launch { onResponse(authenticationRepository.verify(input)) }
     }

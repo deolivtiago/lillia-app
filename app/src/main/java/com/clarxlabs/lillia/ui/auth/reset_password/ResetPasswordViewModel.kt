@@ -10,7 +10,7 @@ class ResetPasswordViewModel(
     ResetPasswordModel.State(handle)
 ) {
 
-    override fun sendEvent(event: ResetPasswordModel.Event) {
+    override fun handleEvent(event: ResetPasswordModel.Event) {
         when (event) {
             is ResetPasswordModel.Event.OnCodeChanged ->
                 onCodeChanged(event.text.trim())
@@ -34,11 +34,11 @@ class ResetPasswordViewModel(
     }
 
     private fun onCodeChanged(text: String) {
-        setState { it.copy(code = text.take(6)) }
+        setUiState { it.copy(code = text.take(6)) }
     }
 
     private fun onPasswordChanged(text: String) {
-        setState { it.copy(password = text) }
+        setUiState { it.copy(password = text) }
     }
 
     private fun onSubmitClicked(navigateTo: (AppRoute) -> Unit) {
@@ -46,6 +46,6 @@ class ResetPasswordViewModel(
     }
 
     private fun onTogglePasswordVisibility() {
-        setState { it.copy(isPasswordVisible = !it.isPasswordVisible) }
+        setUiState { it.copy(isPasswordVisible = !it.isPasswordVisible) }
     }
 }

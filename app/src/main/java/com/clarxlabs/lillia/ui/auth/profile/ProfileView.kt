@@ -36,8 +36,8 @@ import com.clarxlabs.lillia.ui.theme.LilliaTheme
 
 @Composable
 fun ProfileView(viewModel: ProfileViewModel, navigateTo: (AppRoute) -> Unit) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val sendEvent = viewModel::sendEvent
+    val state by viewModel.flow.collectAsStateWithLifecycle()
+    val sendEvent = viewModel::handleEvent
 
     ProfileViewContent(state, sendEvent, navigateTo)
 }

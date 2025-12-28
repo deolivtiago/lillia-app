@@ -46,17 +46,17 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HomeView(viewModel: HomeViewModel, navigateTo: (AppRoute) -> Unit) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val sendEvent = viewModel::sendEvent
+    val state by viewModel.flow.collectAsStateWithLifecycle()
+    val handleEvent = viewModel::handleEvent
 
-    HomeViewContent(state, sendEvent, navigateTo)
+    HomeViewContent(state, handleEvent, navigateTo)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeViewContent(
     state: HomeModel.State,
-    sendEvent: (HomeModel.Event) -> Unit,
+    handleEvent: (HomeModel.Event) -> Unit,
     navigateTo: (AppRoute) -> Unit,
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -72,7 +72,7 @@ fun HomeViewContent(
             NavigationDrawerItem(
                 label = {
                     Text(
-                        text = "Olá, ${state.user.fullName.split(" ").first()}",
+                        text = "Olá, ${state.userFirstName}",
                         style = MaterialTheme.typography.titleLarge.copy(
                             color = MaterialTheme.colorScheme.onPrimary,
                         ),
@@ -112,7 +112,7 @@ fun HomeViewContent(
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                         colors = NavigationDrawerItemDefaults.colors(),
                         onClick = {
-                            sendEvent(HomeModel.Event.OnProfileClicked(navigateTo))
+                            handleEvent(HomeModel.Event.OnProfileClicked(navigateTo))
                             scope.launch { drawerState.close() }
                         },
                         shape = MaterialTheme.shapes.large,
@@ -126,7 +126,7 @@ fun HomeViewContent(
                     onClicked = {
                         scope.launch {
                             drawerState.close()
-                            sendEvent(HomeModel.Event.OnSignOutClicked(navigateTo))
+                            handleEvent(HomeModel.Event.OnSignOutClicked(navigateTo))
                         }
                     },
                     modifier = Modifier.padding(8.dp),
@@ -219,13 +219,13 @@ fun HomeViewContent(
                         value = state.email,
                         valueErrorMessage = state.emailError,
                         onValueChanged = {
-                            sendEvent(HomeModel.Event.OnEmailChanged(it))
+                            handleEvent(HomeModel.Event.OnEmailChanged(it))
                         },
                         isLoading = state.isLoading,
                     )
 
                     ActionButton(
-                        onClicked = { sendEvent(HomeModel.Event.OnSubmitClicked(navigateTo)) },
+                        onClicked = { handleEvent(HomeModel.Event.OnSubmitClicked(navigateTo)) },
                         isLoading = state.isLoading,
                     )
                 }
@@ -242,7 +242,7 @@ fun HomePreviewPhone() {
     LilliaTheme {
         HomeViewContent(
             state = HomeModel.State(),
-            sendEvent = {},
+            handleEvent = {},
             navigateTo = {},
         )
     }
@@ -254,7 +254,7 @@ fun HomePreviewPhoneSmall() {
     LilliaTheme {
         HomeViewContent(
             state = HomeModel.State(),
-            sendEvent = {},
+            handleEvent = {},
             navigateTo = {},
         )
     }
@@ -266,7 +266,7 @@ fun HomePreviewTabletPortrait() {
     LilliaTheme {
         HomeViewContent(
             state = HomeModel.State(),
-            sendEvent = {},
+            handleEvent = {},
             navigateTo = {},
         )
     }
@@ -278,7 +278,7 @@ fun HomePreviewTabletLandscape() {
     LilliaTheme {
         HomeViewContent(
             state = HomeModel.State(),
-            sendEvent = {},
+            handleEvent = {},
             navigateTo = {},
         )
     }

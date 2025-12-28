@@ -15,6 +15,7 @@ import com.clarxlabs.lillia.ui.AppViewModel
 import io.konform.validation.Validation
 import io.konform.validation.constraints.maxLength
 import io.konform.validation.constraints.minLength
+import io.konform.validation.constraints.pattern
 import it.czerwinski.kotlin.util.Either
 import kotlinx.coroutines.launch
 
@@ -24,69 +25,78 @@ class HomeViewModel(
 ) : AppViewModel<HomeModel.State, HomeModel.Event>(HomeModel.State(handle)) {
 
     init {
-        userInfo { result ->
+        getInfo { result ->
             result.fold(
-                { setState { it.copy(user = it.user.copy(fullName = "error")) } },
-                { user -> setState { it.copy(user = user) } }
+                { setUiState { it.copy(user = it.user.copy(fullName = "error")) } },
+                { user -> setUiState { it.copy(user = user) } }
             )
         }
     }
 
-    override fun sendEvent(event: HomeModel.Event) {
-        when (event) {
-            is HomeModel.Event.OnAccessTokenChanged -> {
-                setState { it.copy(accessToken = event.accessToken) }
-            }
 
-            is HomeModel.Event.OnRefreshTokenChanged -> {
-                setState { it.copy(refreshToken = event.refreshToken) }
-            }
+    private fun onEmailChanged(event: HomeModel.Event.OnEmailChanged) {
+        setUiState { it.copy(email = event.text) }
 
-            is HomeModel.Event.OnSignOutClicked -> {
-                setState { it.copy(isLoading = true) }
-
-                signOut { result ->
-                    if (result.isRight) {
-                        setState { it.copy(accessToken = "", refreshToken = "") }
-
-                        event.navigateTo(AppRoute.SignIn)
-                    }
-                }
-
-                setState { it.copy(isLoading = false) }
-            }
-
-            is HomeModel.Event.OnEmailChanged -> {
-//                setState { it.copy(email = event.text) }
-                state.value.email = event.text
-
-                val validate = Validation<String> {
-                    minLength(3)
-                    maxLength(6)
-                }
-
-                Log.d("konform", validate(event.text).toString())
-            }
-
-            is HomeModel.Event.OnSubmitClicked -> {}
-            is HomeModel.Event.OnProfileClicked -> onProfileClicked(event.navigateTo)
+        val validate = Validation {
+            minLength(3)
+            pattern("^\\w+@\\w+\\.\\w+$")
+            maxLength(6)
         }
+
+        Log.d("konform", validate(event.text).toString())
     }
 
-    private fun onProfileClicked(navigateTo: (AppRoute) -> Unit) {
-        navigateTo(AppRoute.Profile(userId = state.value.user.id))
-    }
 
     private fun signOut(onResponse: (Either<SignOutError, SignOutOutput>) -> Unit) {
-        val input = SignOutInput(state.value.accessToken, state.value.refreshToken)
+        val input = SignOutInput(uiState.accessToken, uiState.refreshToken)
 
         viewModelScope.launch { onResponse(authenticationRepository.signOut(input)) }
     }
 
-    private fun userInfo(onResponse: (Either<UserInfoError, UserInfoOutput>) -> Unit = {}) {
-        val input = UserInfoInput(state.value.accessToken, state.value.refreshToken)
+    private fun getInfo(onResponse: (Either<UserInfoError, UserInfoOutput>) -> Unit = {}) {
+        val input = UserInfoInput(uiState.accessToken, uiState.refreshToken)
 
         viewModelScope.launch { onResponse(authenticationRepository.userInfo(input)) }
     }
+
+
+    private fun onSignOutClicked(event: HomeModel.Event.OnSignOutClicked) {
+        setUiState { it.copy(isLoading = true) }
+
+        signOut { result ->
+            if (result.isRight) {
+                setUiState { it.copy(accessToken = "", refreshToken = "") }
+
+                event.navigateTo(AppRoute.SignIn)
+            }
+        }
+
+        setUiState { it.copy(isLoading = false) }
+    }
+
+    private fun onProfileClicked(event: HomeModel.Event.OnProfileClicked) {
+        event.navigateTo(AppRoute.Profile(userId = uiState.user.id))
+    }
+
+    private fun onAccessTokenChanged(event: HomeModel.Event.OnAccessTokenChanged) {
+        setUiState { it.copy(accessToken = event.accessToken) }
+    }
+
+    private fun onRefreshTokenChanged(event: HomeModel.Event.OnRefreshTokenChanged) {
+        setUiState { it.copy(refreshToken = event.refreshToken) }
+    }
+
+    override fun handleEvent(event: HomeModel.Event) {
+        when (event) {
+            is HomeModel.Event.OnAccessTokenChanged -> onAccessTokenChanged(event)
+            is HomeModel.Event.OnRefreshTokenChanged -> onRefreshTokenChanged(event)
+            is HomeModel.Event.OnSignOutClicked -> onSignOutClicked(event)
+            is HomeModel.Event.OnEmailChanged -> onEmailChanged(event)
+            is HomeModel.Event.OnSubmitClicked -> {}
+            is HomeModel.Event.OnProfileClicked -> onProfileClicked(event)
+        }
+    }
+
+
 }
 

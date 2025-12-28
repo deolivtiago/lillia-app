@@ -19,10 +19,10 @@ class SignUpViewModel(
 ) : AppViewModel<SignUpModel.State, SignUpModel.Event>(SignUpModel.State()) {
 
     init {
-        setState { it.copy(isFormValid = isFormValid()) }
+        setUiState { it.copy(isFormValid = isFormValid()) }
     }
 
-    override fun sendEvent(event: SignUpModel.Event) {
+    override fun handleEvent(event: SignUpModel.Event) {
         when (event) {
             is SignUpModel.Event.OnEmailChanged -> onEmailChanged(event.text.trim())
             is SignUpModel.Event.OnFullNameChanged -> onNameChanged(event.text)
@@ -39,7 +39,7 @@ class SignUpViewModel(
     }
 
     private fun onNameChanged(text: String) {
-        setState {
+        setUiState {
             it.copy(
                 fullName = getFullName(text),
                 fullNameError = validationService
@@ -48,7 +48,7 @@ class SignUpViewModel(
             )
         }
 
-        setState { it.copy(isFormValid = isFormValid()) }
+        setUiState { it.copy(isFormValid = isFormValid()) }
     }
 
     private fun getFullName(text: String): String = "${getFirstName(text)} ${getLastName(text)}"
@@ -61,7 +61,7 @@ class SignUpViewModel(
             .joinToString(" ") { if (it.length > 2) it.replaceFirstChar { it.uppercase() } else it }
 
     private fun onEmailChanged(text: String) {
-        setState {
+        setUiState {
             it.copy(
                 email = text,
                 emailError = validationService
@@ -70,11 +70,11 @@ class SignUpViewModel(
             )
         }
 
-        setState { it.copy(isFormValid = isFormValid()) }
+        setUiState { it.copy(isFormValid = isFormValid()) }
     }
 
     private fun onPasswordChanged(text: String) {
-        setState {
+        setUiState {
             it.copy(
                 password = text,
                 passwordError = validationService
@@ -84,7 +84,7 @@ class SignUpViewModel(
             )
         }
 
-        setState { it.copy(isFormValid = isFormValid()) }
+        setUiState { it.copy(isFormValid = isFormValid()) }
     }
 
     private fun confirmationError(password: String, confirmation: String): String =
@@ -93,24 +93,24 @@ class SignUpViewModel(
             .orEmpty()
 
     private fun onConfirmationChanged(text: String) {
-        setState {
+        setUiState {
             it.copy(
                 passwordConfirmation = text,
                 passwordConfirmationError = confirmationError(text, it.password),
             )
         }
 
-        setState { it.copy(isFormValid = isFormValid()) }
+        setUiState { it.copy(isFormValid = isFormValid()) }
     }
 
     private fun onSubmitClicked(navigateTo: (AppRoute) -> Unit) {
-        setState { it.copy(isLoading = true, isPasswordVisible = false) }
+        setUiState { it.copy(isLoading = true, isPasswordVisible = false) }
 
         if (isFormValid())
             signUp {
                 it.fold(
                     { error ->
-                        setState {
+                        setUiState {
                             it.copy(
                                 fullName = error.fullName.first(),
                                 email = error.email.first(),
@@ -118,41 +118,41 @@ class SignUpViewModel(
                             )
                         }
                     },
-                    { navigateTo(AppRoute.SendVerification(state.value.email)) },
+                    { navigateTo(AppRoute.SendVerification(flow.value.email)) },
                 )
 
             }
 
-        setState { it.copy(isLoading = false) }
+        setUiState { it.copy(isLoading = false) }
     }
 
     private fun onPasswordVisibilityClicked() {
-        setState { it.copy(isPasswordVisible = !it.isPasswordVisible) }
+        setUiState { it.copy(isPasswordVisible = !it.isPasswordVisible) }
     }
 
     private fun onNavigate(navigateTo: (AppRoute) -> Unit, route: AppRoute = AppRoute.Home()) {
-        setState { it.copy(isPasswordVisible = false) }
+        setUiState { it.copy(isPasswordVisible = false) }
 
         navigateTo(route)
     }
 
     private fun signUp(onResponse: (Either<SignUpError, SignUpOutput>) -> Unit) {
         val input = SignUpInput(
-            fullName = state.value.fullName.trimEnd(),
-            email = state.value.email,
-            password = state.value.password,
+            fullName = flow.value.fullName.trimEnd(),
+            email = flow.value.email,
+            password = flow.value.password,
         )
 
         viewModelScope.launch { onResponse(authenticationRepository.signUp(input)) }
     }
 
     private fun isFormValid(): Boolean =
-        confirmationError(state.value.password, state.value.passwordConfirmation)
+        confirmationError(flow.value.password, flow.value.passwordConfirmation)
             .isEmpty() and validationService.isValid(
             mapOf(
-                Strategy.EMAIL.to(state.value.email),
-                Strategy.PASSWORD.to(state.value.password),
-                Strategy.FULL_NAME.to(state.value.fullName),
+                Strategy.EMAIL.to(flow.value.email),
+                Strategy.PASSWORD.to(flow.value.password),
+                Strategy.FULL_NAME.to(flow.value.fullName),
             )
         )
 
